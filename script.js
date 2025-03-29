@@ -11,37 +11,59 @@ fetch(scheduleDataUrl)
 
         // Populate the schedule for both weeks
         for (let weekOffset = 0; weekOffset < 2; weekOffset++) {
-            const weekTitle = weekOffset === 0 ? "This Week" : "Next Week";
             const container = weekOffset === 0 ? thisWeekContainer : nextWeekContainer;
+            let firstDayWithContent = null;
 
             daysOrder.forEach(day => {
                 const currentDayData = data[weekOffset === 0 ? day : `next${day}`] || [];
                 const non90milShows = currentDayData.filter(show => show.name !== "90mil Radio");
 
+                const showDay = new Date(now);
+                const dayIndex = daysOrder.indexOf(day);
+                const todayIndex = (now.getDay() + 6) % 7;
+                const dayDifference = (dayIndex - todayIndex) + (weekOffset * 7);
+                showDay.setDate(now.getDate() + dayDifference);
+
+                const dayBlock = document.createElement('div');
+                dayBlock.className = `day-block${non90milShows.length === 0 ? ' empty' : ''}`;
+
+                // Track first day with content
+                if (non90milShows.length > 0 && !firstDayWithContent) {
+                    firstDayWithContent = dayBlock;
+                }
+
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'day-header';
+                const formattedDate = `${day.charAt(0).toUpperCase() + day.slice(1)} - ${('0' + showDay.getDate()).slice(-2)}.${('0' + (showDay.getMonth() + 1)).slice(-2)}.${showDay.getFullYear()}`;
+                dayHeader.textContent = formattedDate;
+                dayBlock.appendChild(dayHeader);
+
                 if (non90milShows.length > 0) {
-                    const showDay = new Date(now);
-                    const dayIndex = daysOrder.indexOf(day);
-                    const todayIndex = (now.getDay() + 6) % 7;
-                    const dayDifference = (dayIndex - todayIndex) + (weekOffset * 7);
-                    showDay.setDate(now.getDate() + dayDifference);
-
-                    const dayBlock = document.createElement('div');
-                    dayBlock.className = 'day-block';
-
-                    const dayHeader = document.createElement('div');
-                    dayHeader.className = 'day-header';
-                    const formattedDate = `${day.charAt(0).toUpperCase() + day.slice(1)} - ${('0' + showDay.getDate()).slice(-2)}.${('0' + (showDay.getMonth() + 1)).slice(-2)}.${showDay.getFullYear()}`;
-                    dayHeader.textContent = `${weekTitle}: ${formattedDate}`;
-                    dayBlock.appendChild(dayHeader);
-
                     non90milShows.forEach(show => {
                         const showElement = createShowElement(show);
                         dayBlock.appendChild(showElement);
                     });
-
-                    container.appendChild(dayBlock);
+                } else {
+                    const noShowsElement = document.createElement('div');
+                    noShowsElement.className = 'no-shows';
+                    noShowsElement.textContent = 'No scheduled shows';
+                    dayBlock.appendChild(noShowsElement);
                 }
+
+                container.appendChild(dayBlock);
             });
+
+            // Scroll to first day with content
+            if (firstDayWithContent) {
+                requestAnimationFrame(() => {
+                    const container = weekOffset === 0 ? thisWeekContainer : nextWeekContainer;
+                    const scrollAmount = firstDayWithContent.offsetLeft - container.offsetLeft;
+                    container.scrollTo({
+                        left: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                });
+            }
         }
     })
     .catch(error => console.error('Error fetching schedule data:', error));
