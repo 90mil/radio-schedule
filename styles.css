@@ -19,6 +19,7 @@ body {
     flex-direction: column;
     gap: 30px;
     width: 100%;
+    overflow: hidden; /* Prevent any overflow */
 }
 
 .week-section {
@@ -26,6 +27,7 @@ body {
     flex-direction: row;
     gap: 10px;
     overflow-x: auto;
+    overflow-y: hidden; /* Prevent vertical scrolling */
     margin-bottom: 30px;
     padding-bottom: 0;  /* Remove scrollbar padding */
     scrollbar-width: none;  /* Firefox */
@@ -34,6 +36,7 @@ body {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    height: fit-content; /* Contain the height to its content */
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -56,6 +59,12 @@ body {
     min-width: 250px;
     max-width: 350px;
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    height: auto; /* Remove fixed height */
+    min-height: 100px; /* Minimum height for empty days */
+    padding-top: 0; /* Remove padding-top since we're using absolute positioning */
 }
 
 .day-block.empty {
@@ -72,7 +81,12 @@ body {
 }
 
 .day-header {
-    background-color: transparent;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    background: #011411;
     color: #edfdfa;
     padding: 10px;
     text-align: left;
@@ -91,55 +105,99 @@ body {
 }
 
 .show {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0;
+    background: rgba(44, 78, 85, 0.2);
+    border-left: 2px solid #2c4e55;
+    padding: 4px 12px 4px 8px;
+    z-index: 1;
+    overflow: hidden;
+    box-sizing: border-box;
     display: flex;
+    flex-direction: column;
     justify-content: flex-start;
-    padding: 4px 0;
-    position: relative;
-    align-items: flex-start;
+    min-height: unset;
+    transition: background-color 0.2s ease, border-left-color 0.2s ease;
+}
+
+.show:hover {
+    background: rgba(44, 78, 85, 0.4);
+    border-left-color: #4a8290;
+    z-index: 2;
 }
 
 .time-info {
-    flex: 0 0 20%;
-    padding: 0;
-    margin: 0 5px;
-    color: #edfdfa;
-    font-size: 12px;
-    padding-top: 2px;
+    font-size: 10px;
+    color: rgba(237, 253, 250, 0.8);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    line-height: 1;
 }
 
 .show-info {
-    flex: 1;
-    padding: 0;
-    margin: 0 5px;
-    text-align: left;
-    color: #edfdfa;
-    font-size: 12px;
-    line-height: 1.4;
+    font-size: 11px;
+    line-height: 1.2;
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px;
+    min-height: unset;
+    padding-right: 2px;
+}
+
+.show-info b {
+    white-space: normal; /* Allow wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    margin-right: 4px;
 }
 
 .hosted-by {
-    font-size: 10px;
+    font-size: 9px;
     font-style: italic;
-    margin-top: 2px;
-    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: rgba(237, 253, 250, 0.7);
+    padding-top: 2px;
+    margin-right: 2px;
 }
 
 .hover-box {
-    position: absolute;
-    background-color: rgba(0, 0, 0, 0.9);
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.95);
     color: white;
-    padding: 10px;
-    border-radius: 5px;
-    width: 200px;
-    top: 20px;
-    left: 20px;
+    padding: 12px;
+    border-radius: 4px;
+    max-width: 300px;
+    min-width: 200px;
     display: none;
     z-index: 1000;
-    font-size: 8px;
+    font-size: 12px;
+    line-height: 1.4;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    pointer-events: none;
+    max-height: 80vh;
+    overflow-y: auto;
+    margin-top: 20px; /* Add some vertical offset */
 }
 
-.show-info:hover .hover-box {
-    display: block;
+/* Add a subtle arrow */
+.hover-box::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    width: 12px;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.95);
+    transform: rotate(45deg);
 }
 
 .no-shows {

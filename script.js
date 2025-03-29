@@ -61,6 +61,24 @@ fetch(scheduleDataUrl)
             const container = weekOffset === 0 ? thisWeekContainer : nextWeekContainer;
             let firstDayWithContent = null;
 
+            // Calculate earliest and latest times for the week
+            let weekEarliestHour = 23;
+            let weekLatestHour = 0;
+
+            // First pass: find earliest and latest times across all days
+            daysOrder.forEach(day => {
+                const currentDayData = data[weekOffset === 0 ? day : `next${day}`] || [];
+                const non90milShows = currentDayData.filter(show => show.name !== "90mil Radio");
+
+                non90milShows.forEach(show => {
+                    const startHour = new Date(show.start_timestamp).getHours();
+                    const endHour = new Date(show.end_timestamp).getHours();
+                    weekEarliestHour = Math.min(weekEarliestHour, startHour);
+                    weekLatestHour = Math.max(weekLatestHour, endHour);
+                });
+            });
+
+            // Second pass: create day blocks with consistent timing
             daysOrder.forEach(day => {
                 const currentDayData = data[weekOffset === 0 ? day : `next${day}`] || [];
                 const non90milShows = currentDayData.filter(show => show.name !== "90mil Radio");
@@ -71,37 +89,10 @@ fetch(scheduleDataUrl)
                 const dayDifference = (dayIndex - todayIndex) + (weekOffset * 7);
                 showDay.setDate(now.getDate() + dayDifference);
 
-                const dayBlock = document.createElement('div');
-                dayBlock.className = `day-block${non90milShows.length === 0 ? ' empty' : ''}`;
+                const dayBlock = createDayBlock(day, non90milShows, showDay, weekEarliestHour, weekLatestHour);
 
-                // Track first day with content
                 if (non90milShows.length > 0 && !firstDayWithContent) {
                     firstDayWithContent = dayBlock;
-                }
-
-                const dayHeader = document.createElement('div');
-                dayHeader.className = 'day-header';
-
-                // Simplified header for empty days
-                if (non90milShows.length === 0) {
-                    dayHeader.textContent = day.charAt(0).toUpperCase() + day.slice(1);
-                } else {
-                    const formattedDate = `${day.charAt(0).toUpperCase() + day.slice(1)} - ${('0' + showDay.getDate()).slice(-2)}.${('0' + (showDay.getMonth() + 1)).slice(-2)}.${showDay.getFullYear()}`;
-                    dayHeader.textContent = formattedDate;
-                }
-
-                dayBlock.appendChild(dayHeader);
-
-                if (non90milShows.length > 0) {
-                    non90milShows.forEach(show => {
-                        const showElement = createShowElement(show);
-                        dayBlock.appendChild(showElement);
-                    });
-                } else {
-                    const noShowsElement = document.createElement('div');
-                    noShowsElement.className = 'no-shows';
-                    noShowsElement.textContent = 'No scheduled shows';
-                    dayBlock.appendChild(noShowsElement);
                 }
 
                 container.appendChild(dayBlock);
@@ -122,15 +113,52 @@ fetch(scheduleDataUrl)
     })
     .catch(error => console.error('Error fetching schedule data:', error));
 
-function createShowElement(show) {
+function createDayBlock(day, shows, showDay, weekEarliestHour, weekLatestHour) {
+    const dayBlock = document.createElement('div');
+    dayBlock.className = `day-block${shows.length === 0 ? ' empty' : ''}`;
+
+    const dayHeader = document.createElement('div');
+    dayHeader.className = 'day-header';
+
+    if (shows.length === 0) {
+        dayHeader.textContent = day.charAt(0).toUpperCase() + day.slice(1);
+    } else {
+        const formattedDate = `${day.charAt(0).toUpperCase() + day.slice(1)} - ${('0' + showDay.getDate()).slice(-2)}.${('0' + (showDay.getMonth() + 1)).slice(-2)}.${showDay.getFullYear()}`;
+        dayHeader.textContent = formattedDate;
+
+        // Adjust container height to match new pixels per minute
+        const timeRangeMinutes = (weekLatestHour - weekEarliestHour + 1) * 60;
+        const containerHeight = (timeRangeMinutes * 0.6) + 40; // 0.6px per minute + header
+        dayBlock.style.height = `${containerHeight}px`;
+
+        shows.forEach(show => {
+            const showElement = createShowElement(show, weekEarliestHour);
+            dayBlock.appendChild(showElement);
+        });
+    }
+
+    dayBlock.appendChild(dayHeader);
+    return dayBlock;
+}
+
+function createShowElement(show, earliestHour) {
     const showStart = new Date(show.start_timestamp);
     const showEnd = new Date(show.end_timestamp);
     const showElement = document.createElement('div');
     showElement.className = 'show';
 
-    // Calculate position based on time
-    const minutes = showStart.getHours() * 60 + showStart.getMinutes();
-    showElement.style.order = minutes; // Use CSS order for positioning
+    // Calculate position and height based on time (offset by earliest hour)
+    const startMinutes = (showStart.getHours() - earliestHour) * 60 + showStart.getMinutes();
+    const endMinutes = (showEnd.getHours() - earliestHour) * 60 + showEnd.getMinutes();
+
+    // Ensure shows end exactly at the hour boundary
+    const duration = endMinutes - startMinutes;
+    const pixelsPerMinute = 0.6;
+    const top = Math.round(startMinutes * pixelsPerMinute) + 40;
+    const height = Math.floor(duration * pixelsPerMinute);
+
+    showElement.style.top = `${top}px`;
+    showElement.style.height = `${height}px`;
 
     const timeInfo = document.createElement('div');
     timeInfo.className = 'time-info';
@@ -149,9 +177,49 @@ function createShowElement(show) {
     hoverBox.className = 'hover-box';
     let showDescription = decodeHtmlEntities(show.description || 'No description available');
     hoverBox.textContent = showDescription;
-    showInfo.appendChild(hoverBox);
+    showElement.appendChild(hoverBox);
+
+    // Show hover box on mouse enter
+    showElement.addEventListener('mouseenter', () => {
+        const showRect = showElement.getBoundingClientRect();
+
+        // Position hover box relative to the show's position in viewport
+        // Overlap horizontally by 20px
+        hoverBox.style.left = `${showRect.right - 20}px`;
+        hoverBox.style.top = `${showRect.top}px`; // The margin-top in CSS will add the vertical offset
+
+        // Show the hover box to calculate its dimensions
+        hoverBox.style.display = 'block';
+        const hoverRect = hoverBox.getBoundingClientRect();
+
+        // Check if hover box would go off right edge
+        if (showRect.right + hoverRect.width - 20 > window.innerWidth) {
+            // When showing on the left side, overlap from the right
+            hoverBox.style.left = `${showRect.left - hoverRect.width + 20}px`;
+        }
+
+        // Check if hover box would go off bottom
+        if (showRect.top + hoverRect.height + 20 > window.innerHeight) {
+            const bottomSpace = window.innerHeight - showRect.bottom;
+            const topSpace = showRect.top;
+
+            if (topSpace > bottomSpace) {
+                // More space above, position above the show
+                hoverBox.style.top = `${showRect.top - hoverRect.height - 20}px`;
+            } else {
+                // Align with bottom of viewport with some padding
+                hoverBox.style.top = `${window.innerHeight - hoverRect.height - 20}px`;
+            }
+        }
+    });
+
+    // Hide hover box on mouse leave
+    showElement.addEventListener('mouseleave', () => {
+        hoverBox.style.display = 'none';
+    });
 
     showElement.appendChild(timeInfo);
     showElement.appendChild(showInfo);
+
     return showElement;
 } 
