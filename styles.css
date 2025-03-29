@@ -14,28 +14,27 @@ body {
 }
 
 .week-schedule-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 20px;
     width: 100%;
     margin-bottom: 40px;
-    align-items: stretch;
 }
 
 .week-section {
     width: 100%;
-    overflow-x: auto;
     display: flex;
-    flex-direction: column;
-    height: 100%;
+    flex-direction: row;
+    gap: 10px;
+    overflow-x: auto;
 }
 
 .day-block {
     border: 1px solid #edfdfa;
-    margin-bottom: 10px;
     padding: 10px;
-    flex: 1;
     background-color: #011411;
+    min-width: 250px;
+    flex: 1;
 }
 
 .day-header {
@@ -101,11 +100,8 @@ body {
 }
 
 @media (max-width: 600px) {
-    .week-schedule-container {
-        grid-template-columns: 1fr;
-    }
-
     .week-section {
-        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 } 
