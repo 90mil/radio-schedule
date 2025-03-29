@@ -1,6 +1,45 @@
 // Schedule script
 const scheduleDataUrl = 'https://neunzugmilradio.airtime.pro/api/week-info';
 
+// Add helper function for HTML entities
+function decodeHtmlEntities(text) {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+}
+
+// Add at the top with other constants
+let isDragging = false;
+let startX;
+let scrollLeft;
+
+function addDragToScroll(element) {
+    element.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        element.style.cursor = 'grabbing';
+        startX = e.pageX - element.offsetLeft;
+        scrollLeft = element.scrollLeft;
+    });
+
+    element.addEventListener('mouseleave', () => {
+        isDragging = false;
+        element.style.cursor = 'grab';
+    });
+
+    element.addEventListener('mouseup', () => {
+        isDragging = false;
+        element.style.cursor = 'grab';
+    });
+
+    element.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - element.offsetLeft;
+        const walk = x - startX; // Scroll speed multiplier
+        element.scrollLeft = scrollLeft - walk;
+    });
+}
+
 fetch(scheduleDataUrl)
     .then(response => response.json())
     .then(data => {
@@ -8,6 +47,14 @@ fetch(scheduleDataUrl)
         const nextWeekContainer = document.getElementById('next-week-container');
         const now = new Date();
         const daysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+        // Add drag scrolling to both containers
+        addDragToScroll(thisWeekContainer);
+        addDragToScroll(nextWeekContainer);
+
+        // Set initial cursor style
+        thisWeekContainer.style.cursor = 'grab';
+        nextWeekContainer.style.cursor = 'grab';
 
         // Populate the schedule for both weeks
         for (let weekOffset = 0; weekOffset < 2; weekOffset++) {
@@ -34,8 +81,15 @@ fetch(scheduleDataUrl)
 
                 const dayHeader = document.createElement('div');
                 dayHeader.className = 'day-header';
-                const formattedDate = `${day.charAt(0).toUpperCase() + day.slice(1)} - ${('0' + showDay.getDate()).slice(-2)}.${('0' + (showDay.getMonth() + 1)).slice(-2)}.${showDay.getFullYear()}`;
-                dayHeader.textContent = formattedDate;
+
+                // Simplified header for empty days
+                if (non90milShows.length === 0) {
+                    dayHeader.textContent = day.charAt(0).toUpperCase() + day.slice(1);
+                } else {
+                    const formattedDate = `${day.charAt(0).toUpperCase() + day.slice(1)} - ${('0' + showDay.getDate()).slice(-2)}.${('0' + (showDay.getMonth() + 1)).slice(-2)}.${showDay.getFullYear()}`;
+                    dayHeader.textContent = formattedDate;
+                }
+
                 dayBlock.appendChild(dayHeader);
 
                 if (non90milShows.length > 0) {
@@ -74,6 +128,10 @@ function createShowElement(show) {
     const showElement = document.createElement('div');
     showElement.className = 'show';
 
+    // Calculate position based on time
+    const minutes = showStart.getHours() * 60 + showStart.getMinutes();
+    showElement.style.order = minutes; // Use CSS order for positioning
+
     const timeInfo = document.createElement('div');
     timeInfo.className = 'time-info';
     timeInfo.textContent = `${showStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - ${showEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`;
@@ -82,14 +140,14 @@ function createShowElement(show) {
     showInfo.className = 'show-info';
     if (show.name.toLowerCase().includes('hosted by')) {
         const splitName = show.name.split(/(hosted by)/i);
-        showInfo.innerHTML = `<b>${splitName[0].trim()}</b><br><span class="hosted-by">${splitName[1]} ${splitName[2]}</span>`;
+        showInfo.innerHTML = `<b>${decodeHtmlEntities(splitName[0].trim())}</b><br><span class="hosted-by">${decodeHtmlEntities(splitName[1])} ${decodeHtmlEntities(splitName[2])}</span>`;
     } else {
-        showInfo.innerHTML = `<b>${show.name}</b>`;
+        showInfo.innerHTML = `<b>${decodeHtmlEntities(show.name)}</b>`;
     }
 
     const hoverBox = document.createElement('div');
     hoverBox.className = 'hover-box';
-    let showDescription = show.description || 'No description available';
+    let showDescription = decodeHtmlEntities(show.description || 'No description available');
     hoverBox.textContent = showDescription;
     showInfo.appendChild(hoverBox);
 

@@ -27,27 +27,18 @@ body {
     gap: 10px;
     overflow-x: auto;
     margin-bottom: 30px;
-    padding-bottom: 10px;  /* Add space above scrollbar */
-    scrollbar-width: thin;  /* Firefox */
-    scrollbar-color: rgba(237, 253, 250, 0.3) transparent;  /* Firefox */
+    padding-bottom: 0;  /* Remove scrollbar padding */
+    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
-/* Webkit (Chrome, Safari, Edge) scrollbar styling */
+/* Hide scrollbar for Chrome, Safari and Opera */
 .week-section::-webkit-scrollbar {
-    height: 6px;  /* Thin scrollbar */
-}
-
-.week-section::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.week-section::-webkit-scrollbar-thumb {
-    background-color: rgba(237, 253, 250, 0.3);
-    border-radius: 3px;
-}
-
-.week-section::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(237, 253, 250, 0.5);
+    display: none;
 }
 
 .week-header {
@@ -62,8 +53,8 @@ body {
     border: 1px solid #edfdfa;
     padding: 10px;
     background-color: #011411;
-    min-width: 200px;
-    max-width: 250px;
+    min-width: 250px;
+    max-width: 350px;
     flex: 1;
 }
 
