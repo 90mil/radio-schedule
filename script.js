@@ -175,22 +175,45 @@ function createShowElement(show, earliestHour) {
 
     const showInfo = document.createElement('div');
     showInfo.className = 'show-info';
+    
+    // Create full show info for hover box
+    const timeStr = `${showStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - ${showEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`;
+    
+    let titleStr, hostStr = '';
     if (show.name.toLowerCase().includes('hosted by')) {
         const splitName = show.name.split(/(hosted by)/i);
+        titleStr = splitName[0].trim();
+        hostStr = `${splitName[1]} ${splitName[2]}`;
         showInfo.innerHTML = `
-            <b>${decodeHtmlEntities(splitName[0].trim())}</b>
-            <span class="hosted-by">${decodeHtmlEntities(splitName[1])} ${decodeHtmlEntities(splitName[2])}</span>
+            <b>${decodeHtmlEntities(titleStr)}</b>
+            <span class="hosted-by">${decodeHtmlEntities(hostStr)}</span>
         `;
     } else {
-        showInfo.innerHTML = `<b>${decodeHtmlEntities(show.name)}</b>`;
+        titleStr = show.name;
+        showInfo.innerHTML = `<b>${decodeHtmlEntities(titleStr)}</b>`;
     }
+
+    // Check if content is overflowing
+    setTimeout(() => {
+        const isOverflowing = showInfo.scrollWidth > showInfo.clientWidth;
+        showInfo.setAttribute('data-overflowing', isOverflowing);
+    }, 0);
 
     const hoverBox = document.createElement('div');
     hoverBox.className = 'hover-box';
-    let showDescription = decodeHtmlEntities(show.description || 'No description available');
-    hoverBox.textContent = showDescription;
+    
+    // Include full show info in hover box
+    const fullShowInfo = document.createElement('div');
+    fullShowInfo.className = 'full-show-info';
+    fullShowInfo.innerHTML = `
+        <div class="hover-title">${decodeHtmlEntities(titleStr)}</div>
+        ${hostStr ? `<div class="hover-host">${decodeHtmlEntities(hostStr)}</div>` : ''}
+        <div class="hover-time">${timeStr}</div>
+        <div class="hover-description">${decodeHtmlEntities(show.description || 'No description available')}</div>
+    `;
+    hoverBox.appendChild(fullShowInfo);
 
-    // Add hover box to the main container to avoid scrolling issues
+    // Add hover box to the main container
     const mainContainer = document.querySelector('.main-container');
     mainContainer.appendChild(hoverBox);
 

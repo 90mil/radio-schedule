@@ -142,8 +142,7 @@ body {
 .show-info {
     font-size: 11px;
     line-height: 1.2;
-    overflow-y: hidden;
-    overflow-x: auto;
+    overflow: hidden; /* Change from overflow-x/y specific */
     display: flex;
     flex-wrap: nowrap;
     align-items: baseline;
@@ -151,11 +150,9 @@ body {
     min-height: unset;
     padding-right: 2px;
     width: 100%;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
+/* Remove these since we don't need scrollbar hiding anymore */
 .show-info::-webkit-scrollbar {
     display: none;
 }
@@ -215,4 +212,33 @@ body {
         margin: 0;
         max-width: none;
     }
+}
+
+.full-show-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hover-title {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.hover-host {
+    font-size: 12px;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.hover-time {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 4px;
+}
+
+.hover-description {
+    font-size: 12px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.9);
 } 
