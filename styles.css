@@ -19,7 +19,7 @@ body {
     flex-direction: column;
     gap: 30px;
     width: 100%;
-    overflow: hidden; /* Prevent any overflow */
+    overflow: visible; /* Allow hover boxes to be visible */
 }
 
 .week-section {
@@ -27,7 +27,7 @@ body {
     flex-direction: row;
     gap: 10px;
     overflow-x: auto;
-    overflow-y: hidden; /* Prevent vertical scrolling */
+    overflow-y: visible; /* Allow hover boxes to be visible */
     margin-bottom: 30px;
     padding-bottom: 0;  /* Remove scrollbar padding */
     scrollbar-width: none;  /* Firefox */
@@ -37,6 +37,7 @@ body {
     -moz-user-select: none;
     -ms-user-select: none;
     height: fit-content; /* Contain the height to its content */
+    position: relative; /* For hover box positioning */
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -65,6 +66,7 @@ body {
     height: auto; /* Remove fixed height */
     min-height: 100px; /* Minimum height for empty days */
     padding-top: 0; /* Remove padding-top since we're using absolute positioning */
+    overflow: visible; /* Allow hover boxes to be visible outside container */
 }
 
 .day-block.empty {
@@ -111,9 +113,9 @@ body {
     margin: 0;
     background: rgba(44, 78, 85, 0.2);
     border-left: 2px solid #2c4e55;
-    padding: 4px 12px 4px 8px;
+    padding: 4px 8px 3px 8px;
     z-index: 1;
-    overflow: hidden;
+    overflow: visible; /* Allow hover boxes to be visible */
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -159,24 +161,23 @@ body {
 }
 
 .hosted-by {
-    font-size: 9px;
+    font-size: 8px;
     font-style: italic;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     color: rgba(237, 253, 250, 0.7);
-    padding-top: 2px;
+    padding-top: 1px;
     margin-right: 2px;
+    max-width: 100%;
 }
 
 .hover-box {
-    position: fixed;
+    position: absolute;
     background-color: rgba(0, 0, 0, 0.95);
     color: white;
     padding: 12px;
     border-radius: 4px;
-    max-width: 300px;
-    min-width: 200px;
     display: none;
     z-index: 1000;
     font-size: 12px;
@@ -185,19 +186,11 @@ body {
     pointer-events: none;
     max-height: 80vh;
     overflow-y: auto;
-    margin-top: 20px; /* Add some vertical offset */
 }
 
-/* Add a subtle arrow */
+/* Remove the arrow since it's now always positioned relative to the show */
 .hover-box::before {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: -6px;
-    width: 12px;
-    height: 12px;
-    background: rgba(0, 0, 0, 0.95);
-    transform: rotate(45deg);
+    display: none;
 }
 
 .no-shows {
@@ -208,5 +201,12 @@ body {
     .week-section {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media (max-width: 768px) {
+    .hover-box {
+        margin: 5px 0;
+        max-width: calc(100vw - 40px); /* Account for margins */
     }
 } 

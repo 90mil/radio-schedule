@@ -126,9 +126,9 @@ function createDayBlock(day, shows, showDay, weekEarliestHour, weekLatestHour) {
         const formattedDate = `${day.charAt(0).toUpperCase() + day.slice(1)} - ${('0' + showDay.getDate()).slice(-2)}.${('0' + (showDay.getMonth() + 1)).slice(-2)}.${showDay.getFullYear()}`;
         dayHeader.textContent = formattedDate;
 
-        // Adjust container height to match new pixels per minute
+        // Adjust container height to match new pixels per minute, plus 2px margin
         const timeRangeMinutes = (weekLatestHour - weekEarliestHour + 1) * 60;
-        const containerHeight = (timeRangeMinutes * 0.6) + 40; // 0.6px per minute + header
+        const containerHeight = (timeRangeMinutes * 0.6) + 42; // Added 2px extra margin
         dayBlock.style.height = `${containerHeight}px`;
 
         shows.forEach(show => {
@@ -177,45 +177,42 @@ function createShowElement(show, earliestHour) {
     hoverBox.className = 'hover-box';
     let showDescription = decodeHtmlEntities(show.description || 'No description available');
     hoverBox.textContent = showDescription;
-    showElement.appendChild(hoverBox);
+
+    // Add hover box to week container instead of show element
+    const weekContainer = document.querySelector('.week-section');
+    weekContainer.appendChild(hoverBox);
 
     // Show hover box on mouse enter
     showElement.addEventListener('mouseenter', () => {
         const showRect = showElement.getBoundingClientRect();
+        const showInfoRect = showInfo.getBoundingClientRect();
+        const isMobile = window.innerWidth <= 768;
 
-        // Position hover box relative to the show's position in viewport
-        // Overlap horizontally by 20px
-        hoverBox.style.left = `${showRect.right - 20}px`;
-        hoverBox.style.top = `${showRect.top}px`; // The margin-top in CSS will add the vertical offset
+        // Position below the show title
+        const top = showInfoRect.bottom + window.scrollY;
+        const left = showRect.left + window.scrollX;
 
-        // Show the hover box to calculate its dimensions
+        hoverBox.style.position = 'absolute';
+        hoverBox.style.top = `${top}px`;
+        hoverBox.style.left = isMobile ? `${left}px` : `${left + 10}px`; // Slight offset on desktop
+        hoverBox.style.right = isMobile ? `${window.innerWidth - showRect.right}px` : 'auto';
+        hoverBox.style.width = isMobile ? 'auto' : '250px';
+
+        // Show immediately without waiting for transitions
+        hoverBox.style.transition = 'none';
         hoverBox.style.display = 'block';
+
+        // If it would go off bottom of viewport, show above the title instead
         const hoverRect = hoverBox.getBoundingClientRect();
-
-        // Check if hover box would go off right edge
-        if (showRect.right + hoverRect.width - 20 > window.innerWidth) {
-            // When showing on the left side, overlap from the right
-            hoverBox.style.left = `${showRect.left - hoverRect.width + 20}px`;
-        }
-
-        // Check if hover box would go off bottom
-        if (showRect.top + hoverRect.height + 20 > window.innerHeight) {
-            const bottomSpace = window.innerHeight - showRect.bottom;
-            const topSpace = showRect.top;
-
-            if (topSpace > bottomSpace) {
-                // More space above, position above the show
-                hoverBox.style.top = `${showRect.top - hoverRect.height - 20}px`;
-            } else {
-                // Align with bottom of viewport with some padding
-                hoverBox.style.top = `${window.innerHeight - hoverRect.height - 20}px`;
-            }
+        if (hoverRect.bottom > window.innerHeight) {
+            hoverBox.style.top = `${showInfoRect.top + window.scrollY - hoverRect.height}px`;
         }
     });
 
-    // Hide hover box on mouse leave
+    // Reset transition on mouseleave
     showElement.addEventListener('mouseleave', () => {
         hoverBox.style.display = 'none';
+        hoverBox.style.transition = '';
     });
 
     showElement.appendChild(timeInfo);
