@@ -123,8 +123,17 @@ function createDayBlock(day, shows, showDay, weekEarliestHour, weekLatestHour) {
     if (shows.length === 0) {
         dayHeader.textContent = day.charAt(0).toUpperCase() + day.slice(1);
     } else {
-        const formattedDate = `${day.charAt(0).toUpperCase() + day.slice(1)} - ${('0' + showDay.getDate()).slice(-2)}.${('0' + (showDay.getMonth() + 1)).slice(-2)}.${showDay.getFullYear()}`;
-        dayHeader.textContent = formattedDate;
+        const dayName = day.charAt(0).toUpperCase() + day.slice(1);
+        const dateStr = `${('0' + showDay.getDate()).slice(-2)}.${('0' + (showDay.getMonth() + 1)).slice(-2)}.${showDay.getFullYear()}`;
+
+        // Create separate spans for day and date
+        const daySpan = document.createElement('span');
+        daySpan.textContent = dayName;
+        const dateSpan = document.createElement('span');
+        dateSpan.textContent = dateStr;
+
+        dayHeader.appendChild(daySpan);
+        dayHeader.appendChild(dateSpan);
 
         // Adjust container height to match new pixels per minute, plus 2px margin
         const timeRangeMinutes = (weekLatestHour - weekEarliestHour + 1) * 60;
@@ -168,7 +177,10 @@ function createShowElement(show, earliestHour) {
     showInfo.className = 'show-info';
     if (show.name.toLowerCase().includes('hosted by')) {
         const splitName = show.name.split(/(hosted by)/i);
-        showInfo.innerHTML = `<b>${decodeHtmlEntities(splitName[0].trim())}</b><br><span class="hosted-by">${decodeHtmlEntities(splitName[1])} ${decodeHtmlEntities(splitName[2])}</span>`;
+        showInfo.innerHTML = `
+            <b>${decodeHtmlEntities(splitName[0].trim())}</b>
+            <span class="hosted-by">${decodeHtmlEntities(splitName[1])} ${decodeHtmlEntities(splitName[2])}</span>
+        `;
     } else {
         showInfo.innerHTML = `<b>${decodeHtmlEntities(show.name)}</b>`;
     }
