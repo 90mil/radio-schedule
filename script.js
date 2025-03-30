@@ -178,34 +178,34 @@ function createShowElement(show, earliestHour) {
     let showDescription = decodeHtmlEntities(show.description || 'No description available');
     hoverBox.textContent = showDescription;
 
-    // Add hover box to week container instead of show element
-    const weekContainer = document.querySelector('.week-section');
-    weekContainer.appendChild(hoverBox);
+    // Add hover box to the main container to avoid scrolling issues
+    const mainContainer = document.querySelector('.main-container');
+    mainContainer.appendChild(hoverBox);
 
     // Show hover box on mouse enter
     showElement.addEventListener('mouseenter', () => {
         const showRect = showElement.getBoundingClientRect();
-        const showInfoRect = showInfo.getBoundingClientRect();
         const isMobile = window.innerWidth <= 768;
 
-        // Position below the show title
-        const top = showInfoRect.bottom + window.scrollY;
-        const left = showRect.left + window.scrollX;
-
-        hoverBox.style.position = 'absolute';
-        hoverBox.style.top = `${top}px`;
-        hoverBox.style.left = isMobile ? `${left}px` : `${left + 10}px`; // Slight offset on desktop
-        hoverBox.style.right = isMobile ? `${window.innerWidth - showRect.right}px` : 'auto';
-        hoverBox.style.width = isMobile ? 'auto' : '250px';
+        // Position relative to the viewport
+        hoverBox.style.position = 'fixed';
+        hoverBox.style.top = `${showRect.bottom + 5}px`; // Small gap below show
+        hoverBox.style.left = isMobile ? `${showRect.left}px` : `${showRect.left + 10}px`;
+        hoverBox.style.width = isMobile ? `${showRect.width}px` : '250px';
 
         // Show immediately without waiting for transitions
         hoverBox.style.transition = 'none';
         hoverBox.style.display = 'block';
 
-        // If it would go off bottom of viewport, show above the title instead
+        // If it would go off bottom of viewport, show above the show
         const hoverRect = hoverBox.getBoundingClientRect();
         if (hoverRect.bottom > window.innerHeight) {
-            hoverBox.style.top = `${showInfoRect.top + window.scrollY - hoverRect.height}px`;
+            hoverBox.style.top = `${showRect.top - hoverRect.height - 5}px`;
+        }
+
+        // If it would go off right edge, adjust position
+        if (!isMobile && hoverRect.right > window.innerWidth) {
+            hoverBox.style.left = `${window.innerWidth - hoverRect.width - 10}px`;
         }
     });
 

@@ -173,7 +173,7 @@ body {
 }
 
 .hover-box {
-    position: absolute;
+    position: fixed;
     background-color: rgba(0, 0, 0, 0.95);
     color: white;
     padding: 12px;
@@ -206,7 +206,7 @@ body {
 
 @media (max-width: 768px) {
     .hover-box {
-        margin: 5px 0;
-        max-width: calc(100vw - 40px); /* Account for margins */
+        margin: 0;
+        max-width: none;
     }
 } 
