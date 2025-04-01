@@ -318,28 +318,23 @@ function createShowElement(show, earliestHour) {
             hoverBox.style.display = 'block';
             hoverBox.style.width = '250px';
             
-            // Position relative to viewport with 5px offset
+            // Initial position - 5px offset from show
             let top = showRect.top + 5;
             let left = showRect.left + 5;
             
-            // Show immediately without waiting for transitions
-            hoverBox.style.transition = 'none';
-
-            // Set initial position to check dimensions
-            hoverBox.style.top = `${top}px`;
-            hoverBox.style.left = `${left}px`;
-
-            // Get hover box dimensions after positioning
+            // Get hover box dimensions
             const hoverRect = hoverBox.getBoundingClientRect();
-
-            // Adjust if would go off bottom of viewport
+            
+            // Adjust vertical position if would go off bottom
             if (top + hoverRect.height > window.innerHeight) {
                 top = window.innerHeight - hoverRect.height - 10;
             }
-
-            // Adjust if would go off right edge of viewport
+            
+            // Adjust horizontal position
             if (left + hoverRect.width > window.innerWidth) {
                 left = window.innerWidth - hoverRect.width - 10;
+            } else if (left < 0) {
+                left = 10;
             }
 
             // Apply final position
