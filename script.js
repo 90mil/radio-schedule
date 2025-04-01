@@ -12,6 +12,8 @@ function decodeHtmlEntities(text) {
 let isDragging = false;
 let startX;
 let scrollLeft;
+let isScrolling;
+let activeHoverBox = null;
 
 function addDragToScroll(element) {
     element.addEventListener('mousedown', (e) => {
@@ -19,11 +21,13 @@ function addDragToScroll(element) {
         element.style.cursor = 'grabbing';
         startX = e.pageX - element.offsetLeft;
         scrollLeft = element.scrollLeft;
+        hideHoverBoxDuringScroll(); // Hide on drag start
     });
 
     element.addEventListener('mouseleave', () => {
         isDragging = false;
         element.style.cursor = 'grab';
+        hideHoverBoxDuringScroll(); // Hide when drag leaves container
     });
 
     element.addEventListener('mouseup', () => {
@@ -35,8 +39,9 @@ function addDragToScroll(element) {
         if (!isDragging) return;
         e.preventDefault();
         const x = e.pageX - element.offsetLeft;
-        const walk = x - startX; // Scroll speed multiplier
+        const walk = x - startX;
         element.scrollLeft = scrollLeft - walk;
+        hideHoverBoxDuringScroll(); // Hide while dragging
     });
 }
 
@@ -44,6 +49,12 @@ function formatDateLong(date) {
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 
                    'July', 'August', 'September', 'October', 'November', 'December'];
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function hideHoverBoxDuringScroll() {
+    if (activeHoverBox) {
+        activeHoverBox.style.display = 'none';
+    }
 }
 
 fetch(scheduleDataUrl)
@@ -135,6 +146,10 @@ fetch(scheduleDataUrl)
                 });
             }
         }
+
+        // Add scroll listeners to both week containers
+        thisWeekContainer.addEventListener('scroll', hideHoverBoxDuringScroll);
+        nextWeekContainer.addEventListener('scroll', hideHoverBoxDuringScroll);
     })
     .catch(error => console.error('Error fetching schedule data:', error));
 
@@ -235,48 +250,99 @@ function createShowElement(show, earliestHour) {
     showElement.appendChild(timeInfo);
     showElement.appendChild(showInfo);
 
-    // Show hover box on mouse enter
-    showElement.addEventListener('mouseenter', () => {
-        const showRect = showElement.getBoundingClientRect();
-        const isMobile = window.innerWidth <= 768;
+    const isMobile = window.innerWidth <= 768;
 
-        // Position directly using viewport coordinates
-        hoverBox.style.position = 'fixed';
-        hoverBox.style.display = 'block';
-        hoverBox.style.width = isMobile ? `${showRect.width}px` : '250px';
+    if (isMobile) {
+        // Touch events for mobile
+        showElement.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling while touching show
+            const showRect = showElement.getBoundingClientRect();
 
-        // Position relative to viewport with 5px offset
-        let top = showRect.top + 5;  // 5px down
-        let left = showRect.left + 5;  // 5px right
+            activeHoverBox = hoverBox;
+            hoverBox.style.position = 'fixed';
+            hoverBox.style.display = 'block';
+            hoverBox.style.width = `${showRect.width}px`;
 
-        // Show immediately without waiting for transitions
-        hoverBox.style.transition = 'none';
+            // Position relative to viewport with 5px offset
+            let top = showRect.top + 5;
+            let left = showRect.left + 5;
 
-        // Set initial position to check dimensions
-        hoverBox.style.top = `${top}px`;
-        hoverBox.style.left = `${left}px`;
+            // Set initial position to check dimensions
+            hoverBox.style.top = `${top}px`;
+            hoverBox.style.left = `${left}px`;
 
-        // Get hover box dimensions after positioning
-        const hoverRect = hoverBox.getBoundingClientRect();
+            // Get hover box dimensions after positioning
+            const hoverRect = hoverBox.getBoundingClientRect();
 
-        // Adjust if would go off bottom of viewport
-        if (top + hoverRect.height > window.innerHeight) {
-            top = window.innerHeight - hoverRect.height - 10;
-        }
+            // Adjust if would go off bottom of viewport
+            if (top + hoverRect.height > window.innerHeight) {
+                top = window.innerHeight - hoverRect.height - 10;
+            }
 
-        // Adjust if would go off right edge of viewport
-        if (left + hoverRect.width > window.innerWidth) {
-            left = window.innerWidth - hoverRect.width - 10;
-        }
+            // Adjust if would go off right edge of viewport
+            if (left + hoverRect.width > window.innerWidth) {
+                left = window.innerWidth - hoverRect.width - 10;
+            }
 
-        // Apply final position
-        hoverBox.style.top = `${top}px`;
-        hoverBox.style.left = `${left}px`;
-    });
+            // Apply final position
+            hoverBox.style.top = `${top}px`;
+            hoverBox.style.left = `${left}px`;
+        });
 
-    showElement.addEventListener('mouseleave', () => {
-        hoverBox.style.display = 'none';
-    });
+        showElement.addEventListener('touchend', () => {
+            if (activeHoverBox === hoverBox) {
+                activeHoverBox = null;
+            }
+            hoverBox.style.display = 'none';
+        });
+    } else {
+        // Mouse events for desktop (existing code)
+        showElement.addEventListener('mouseenter', () => {
+            const showRect = showElement.getBoundingClientRect();
+
+            // Set as active hover box first
+            activeHoverBox = hoverBox;
+
+            hoverBox.style.position = 'fixed';
+            hoverBox.style.display = 'block';
+            hoverBox.style.width = '250px';
+
+            // Position relative to viewport with 5px offset
+            let top = showRect.top + 5;  // 5px down
+            let left = showRect.left + 5;  // 5px right
+
+            // Show immediately without waiting for transitions
+            hoverBox.style.transition = 'none';
+
+            // Set initial position to check dimensions
+            hoverBox.style.top = `${top}px`;
+            hoverBox.style.left = `${left}px`;
+
+            // Get hover box dimensions after positioning
+            const hoverRect = hoverBox.getBoundingClientRect();
+
+            // Adjust if would go off bottom of viewport
+            if (top + hoverRect.height > window.innerHeight) {
+                top = window.innerHeight - hoverRect.height - 10;
+            }
+
+            // Adjust if would go off right edge of viewport
+            if (left + hoverRect.width > window.innerWidth) {
+                left = window.innerWidth - hoverRect.width - 10;
+            }
+
+            // Apply final position
+            hoverBox.style.top = `${top}px`;
+            hoverBox.style.left = `${left}px`;
+        });
+
+        showElement.addEventListener('mouseleave', () => {
+            if (activeHoverBox === hoverBox) {
+                activeHoverBox = null;
+            }
+            hoverBox.style.display = 'none';
+        });
+    }
 
     return showElement;
 } 

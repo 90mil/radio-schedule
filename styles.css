@@ -193,6 +193,12 @@ body {
     pointer-events: none;
     max-height: 80vh;
     overflow-y: auto;
+    opacity: 1;
+    transition: opacity 0.15s ease;
+}
+
+.hover-box.hidden {
+    opacity: 0;
 }
 
 /* Remove the arrow since it's now always positioned relative to the show */
