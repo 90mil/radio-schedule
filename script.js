@@ -40,6 +40,12 @@ function addDragToScroll(element) {
     });
 }
 
+function formatDateLong(date) {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                   'July', 'August', 'September', 'October', 'November', 'December'];
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+}
+
 fetch(scheduleDataUrl)
     .then(response => response.json())
     .then(data => {
@@ -124,16 +130,8 @@ function createDayBlock(day, shows, showDay, weekEarliestHour, weekLatestHour) {
         dayHeader.textContent = day.charAt(0).toUpperCase() + day.slice(1);
     } else {
         const dayName = day.charAt(0).toUpperCase() + day.slice(1);
-        const dateStr = `${('0' + showDay.getDate()).slice(-2)}.${('0' + (showDay.getMonth() + 1)).slice(-2)}.${showDay.getFullYear()}`;
-
-        // Create separate spans for day and date
-        const daySpan = document.createElement('span');
-        daySpan.textContent = dayName;
-        const dateSpan = document.createElement('span');
-        dateSpan.textContent = dateStr;
-
-        dayHeader.appendChild(daySpan);
-        dayHeader.appendChild(dateSpan);
+        const dateStr = formatDateLong(showDay);
+        dayHeader.innerHTML = `<span>${dayName}</span><span>${dateStr}</span>`;
 
         // Adjust container height to match new pixels per minute, plus 2px margin
         const timeRangeMinutes = (weekLatestHour - weekEarliestHour + 1) * 60;
@@ -177,13 +175,13 @@ function createShowElement(show, earliestHour) {
     showInfo.className = 'show-info';
 
     // Create full show info for hover box
-    const timeStr = `${showStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - ${showEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`;
+    const timeStr = `${showStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - ${showEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} · ${formatDateLong(showStart)}`;
 
     let titleStr, hostStr = '';
     if (show.name.toLowerCase().includes('hosted by')) {
         const splitName = show.name.split(/(hosted by)/i);
         titleStr = splitName[0].trim();
-        hostStr = splitName[2].trim(); // Just take the host name, remove "hosted by"
+        hostStr = `${splitName[1]} ${splitName[2].trim()}`;
         showInfo.innerHTML = `
             <b>${decodeHtmlEntities(titleStr)}</b>
             <span class="hosted-by">${decodeHtmlEntities(hostStr)}</span>
@@ -228,9 +226,9 @@ function createShowElement(show, earliestHour) {
         hoverBox.style.display = 'block';
         hoverBox.style.width = isMobile ? `${showRect.width}px` : '250px';
 
-        // Position relative to viewport
-        let top = showRect.top;
-        let left = showRect.left;
+        // Position relative to viewport with 5px offset
+        let top = showRect.top + 5;  // 5px down
+        let left = showRect.left + 5;  // 5px right
 
         // Show immediately without waiting for transitions
         hoverBox.style.transition = 'none';

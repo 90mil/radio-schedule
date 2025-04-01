@@ -118,7 +118,7 @@ body {
     margin-bottom: 2px;
     white-space: nowrap;
     line-height: 1.2;
-    width: 50px;
+    width: 45px;
     flex-shrink: 0;
 }
 
@@ -129,13 +129,13 @@ body {
     margin: 0;
     background: rgba(44, 78, 85, 0.2);
     border-left: 2px solid #2c4e55;
-    padding: 4px 8px 3px 8px;
+    padding: 4px 4px 3px 4px;
     z-index: 1;
     overflow: visible;
     box-sizing: border-box;
-    display: grid; /* Change to grid layout */
-    grid-template-columns: 50px 1fr; /* Time column and content column */
-    grid-gap: 8px;
+    display: grid;
+    grid-template-columns: 45px 1fr;
+    grid-gap: 2px;
     min-height: unset;
     transition: background-color 0.2s ease, border-left-color 0.2s ease;
 }
@@ -176,8 +176,7 @@ body {
     width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-align: left; /* Change to left align */
-    padding-left: 12px; /* Add indent */
+    text-align: left;
 }
 
 .hover-box {
