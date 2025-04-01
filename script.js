@@ -46,8 +46,8 @@ function addDragToScroll(element) {
 }
 
 function formatDateLong(date) {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                   'July', 'August', 'September', 'October', 'November', 'December'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
@@ -122,16 +122,16 @@ fetch(scheduleDataUrl)
                     const containerWidth = container.clientWidth;
                     const headerMarginPercent = 0.05;
                     const headerMarginWidth = containerWidth * headerMarginPercent;
-                    
+
                     // Calculate both possible alignments
                     const lastDay = container.lastElementChild;
-                    
+
                     // Calculate actual content width from first content to last day
                     const contentWidth = lastDay.offsetLeft + lastDay.offsetWidth - firstDayWithContent.offsetLeft;
-                    
+
                     const lastDayAlignment = lastDay.offsetLeft - (containerWidth - lastDay.offsetWidth - headerMarginWidth);
                     const firstContentAlignment = firstDayWithContent.offsetLeft - headerMarginWidth;
-                    
+
                     let scrollAmount;
                     if (contentWidth <= containerWidth) {
                         scrollAmount = lastDayAlignment;
@@ -253,35 +253,43 @@ function createShowElement(show, earliestHour) {
     const isMobile = window.innerWidth <= 768;
 
     if (isMobile) {
-        // Touch events for mobile
         showElement.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Prevent scrolling while touching show
+            e.preventDefault();
             const showRect = showElement.getBoundingClientRect();
 
             activeHoverBox = hoverBox;
             hoverBox.style.position = 'fixed';
             hoverBox.style.display = 'block';
+
+            // First set width to calculate proper dimensions
             hoverBox.style.width = `${showRect.width}px`;
 
-            // Position relative to viewport with 5px offset
-            let top = showRect.top + 5;
-            let left = showRect.left + 5;
+            // Initial position - center over the show
+            let top = showRect.top + (showRect.height / 2);
+            let left = showRect.left;
 
-            // Set initial position to check dimensions
-            hoverBox.style.top = `${top}px`;
-            hoverBox.style.left = `${left}px`;
-
-            // Get hover box dimensions after positioning
+            // Get hover box dimensions
             const hoverRect = hoverBox.getBoundingClientRect();
 
-            // Adjust if would go off bottom of viewport
-            if (top + hoverRect.height > window.innerHeight) {
+            // Adjust vertical position
+            if (top + (hoverRect.height / 2) > window.innerHeight) {
+                // If would go off bottom, position above the touch point
                 top = window.innerHeight - hoverRect.height - 10;
+            } else if (top - (hoverRect.height / 2) < 0) {
+                // If would go off top, position below the touch point
+                top = 10;
+            } else {
+                // Center the hover box vertically on the touch point
+                top = top - (hoverRect.height / 2);
             }
 
-            // Adjust if would go off right edge of viewport
+            // Adjust horizontal position
             if (left + hoverRect.width > window.innerWidth) {
+                // If would go off right edge, align with right edge of screen
                 left = window.innerWidth - hoverRect.width - 10;
+            } else if (left < 0) {
+                // If would go off left edge, align with left edge of screen
+                left = 10;
             }
 
             // Apply final position
