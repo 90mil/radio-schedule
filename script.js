@@ -16,32 +16,43 @@ let isScrolling;
 let activeHoverBox = null;
 
 function addDragToScroll(element) {
+    let dragStartX;
+    
     element.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        element.style.cursor = 'grabbing';
+        dragStartX = e.pageX;
         startX = e.pageX - element.offsetLeft;
         scrollLeft = element.scrollLeft;
-        hideHoverBoxDuringScroll(); // Hide on drag start
     });
 
-    element.addEventListener('mouseleave', () => {
-        isDragging = false;
-        element.style.cursor = 'grab';
-        hideHoverBoxDuringScroll(); // Hide when drag leaves container
+    element.addEventListener('mousemove', (e) => {
+        if (!dragStartX) return;
+        
+        // Only start dragging if mouse has moved more than 3px
+        if (!isDragging && Math.abs(e.pageX - dragStartX) > 3) {
+            isDragging = true;
+            element.style.cursor = 'grabbing';
+            hideHoverBoxDuringScroll();
+        }
+        
+        if (isDragging) {
+            e.preventDefault();
+            const x = e.pageX - element.offsetLeft;
+            const walk = x - startX;
+            element.scrollLeft = scrollLeft - walk;
+        }
     });
 
     element.addEventListener('mouseup', () => {
         isDragging = false;
+        dragStartX = null;
         element.style.cursor = 'grab';
     });
 
-    element.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-        const x = e.pageX - element.offsetLeft;
-        const walk = x - startX;
-        element.scrollLeft = scrollLeft - walk;
-        hideHoverBoxDuringScroll(); // Hide while dragging
+    element.addEventListener('mouseleave', () => {
+        isDragging = false;
+        dragStartX = null;
+        element.style.cursor = 'grab';
+        hideHoverBoxDuringScroll();
     });
 }
 
@@ -254,35 +265,29 @@ function createShowElement(show, earliestHour) {
 
     if (isMobile) {
         showElement.addEventListener('touchstart', (e) => {
-            e.preventDefault();
+            e.preventDefault(); // Prevent scrolling while touching
             const showRect = showElement.getBoundingClientRect();
 
             activeHoverBox = hoverBox;
             hoverBox.style.position = 'fixed';
             hoverBox.style.display = 'block';
-
+            
             // First set width to calculate proper dimensions
             hoverBox.style.width = `${showRect.width}px`;
-
-            // Initial position - center over the show
-            let top = showRect.top + (showRect.height / 2);
+            
+            // Initial position - 5px below top of show
+            let top = showRect.top + 5;
             let left = showRect.left;
-
+            
             // Get hover box dimensions
             const hoverRect = hoverBox.getBoundingClientRect();
-
-            // Adjust vertical position
-            if (top + (hoverRect.height / 2) > window.innerHeight) {
-                // If would go off bottom, position above the touch point
-                top = window.innerHeight - hoverRect.height - 10;
-            } else if (top - (hoverRect.height / 2) < 0) {
-                // If would go off top, position below the touch point
-                top = 10;
-            } else {
-                // Center the hover box vertically on the touch point
-                top = top - (hoverRect.height / 2);
+            
+            // Adjust vertical position if would go off bottom
+            if (top + hoverRect.height > window.innerHeight) {
+                // If would go off bottom, position above the show
+                top = showRect.top - hoverRect.height - 5;
             }
-
+            
             // Adjust horizontal position
             if (left + hoverRect.width > window.innerWidth) {
                 // If would go off right edge, align with right edge of screen
@@ -304,21 +309,19 @@ function createShowElement(show, earliestHour) {
             hoverBox.style.display = 'none';
         });
     } else {
-        // Mouse events for desktop (existing code)
+        // Mouse events for desktop
         showElement.addEventListener('mouseenter', () => {
             const showRect = showElement.getBoundingClientRect();
-
-            // Set as active hover box first
+            
             activeHoverBox = hoverBox;
-
             hoverBox.style.position = 'fixed';
             hoverBox.style.display = 'block';
             hoverBox.style.width = '250px';
-
+            
             // Position relative to viewport with 5px offset
-            let top = showRect.top + 5;  // 5px down
-            let left = showRect.left + 5;  // 5px right
-
+            let top = showRect.top + 5;
+            let left = showRect.left + 5;
+            
             // Show immediately without waiting for transitions
             hoverBox.style.transition = 'none';
 
@@ -349,6 +352,14 @@ function createShowElement(show, earliestHour) {
                 activeHoverBox = null;
             }
             hoverBox.style.display = 'none';
+        });
+
+        showElement.addEventListener('mousedown', () => {
+            hoverBox.classList.add('active');
+        });
+
+        showElement.addEventListener('mouseup', () => {
+            hoverBox.classList.remove('active');
         });
     }
 

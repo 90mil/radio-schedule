@@ -195,6 +195,8 @@ body {
     overflow-y: auto;
     opacity: 1;
     transition: opacity 0.15s ease;
+    border: 1px solid transparent; /* Add transparent border by default */
+    box-sizing: border-box; /* Prevent border from affecting size */
 }
 
 .hover-box.hidden {
@@ -251,4 +253,9 @@ body {
     font-size: 10px;
     line-height: 1.4;
     color: rgba(255, 255, 255, 0.9);
+}
+
+.hover-box.active {
+    border-color: rgba(255, 255, 255, 0.2); /* Just change border color */
+    box-shadow: 0 2px 12px rgba(0,0,0,0.7);
 } 
