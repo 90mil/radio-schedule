@@ -104,13 +104,32 @@ fetch(scheduleDataUrl)
                 container.appendChild(dayBlock);
             });
 
-            // Scroll to first day with content
+            // Modify scroll behavior to align with headers
             if (firstDayWithContent) {
                 requestAnimationFrame(() => {
                     const container = weekOffset === 0 ? thisWeekContainer : nextWeekContainer;
-                    const scrollAmount = firstDayWithContent.offsetLeft - container.offsetLeft;
+                    const containerWidth = container.clientWidth;
+                    const headerMarginPercent = 0.05;
+                    const headerMarginWidth = containerWidth * headerMarginPercent;
+                    
+                    // Calculate both possible alignments
+                    const lastDay = container.lastElementChild;
+                    
+                    // Calculate actual content width from first content to last day
+                    const contentWidth = lastDay.offsetLeft + lastDay.offsetWidth - firstDayWithContent.offsetLeft;
+                    
+                    const lastDayAlignment = lastDay.offsetLeft - (containerWidth - lastDay.offsetWidth - headerMarginWidth);
+                    const firstContentAlignment = firstDayWithContent.offsetLeft - headerMarginWidth;
+                    
+                    let scrollAmount;
+                    if (contentWidth <= containerWidth) {
+                        scrollAmount = lastDayAlignment;
+                    } else {
+                        scrollAmount = firstContentAlignment;
+                    }
+
                     container.scrollTo({
-                        left: scrollAmount,
+                        left: Math.max(0, scrollAmount),
                         behavior: 'smooth'
                     });
                 });

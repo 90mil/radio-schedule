@@ -9,8 +9,8 @@ body {
 .main-container {
     display: flex;
     flex-direction: column;
-    width: 80%;
-    margin: 20px auto;
+    width: 100%;
+    margin: 20px 0;
     gap: 5px;
 }
 
@@ -30,8 +30,8 @@ body {
     overflow-y: visible;
     margin-bottom: 30px;
     padding-bottom: 0;
-    padding-right: 5%;
-    padding-left: 5%;
+    padding-right: 25%; /* Add back padding for scroll space */
+    padding-left: 25%; /* Add back padding for scroll space */
     scrollbar-width: none;
     -ms-overflow-style: none;
     user-select: none;
