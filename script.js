@@ -171,19 +171,19 @@ function createShowElement(show, earliestHour) {
 
     const timeInfo = document.createElement('div');
     timeInfo.className = 'time-info';
-    timeInfo.textContent = `${showStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - ${showEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`;
+    timeInfo.innerHTML = `${showStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}<br>${showEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`;
 
     const showInfo = document.createElement('div');
     showInfo.className = 'show-info';
-    
+
     // Create full show info for hover box
     const timeStr = `${showStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - ${showEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`;
-    
+
     let titleStr, hostStr = '';
     if (show.name.toLowerCase().includes('hosted by')) {
         const splitName = show.name.split(/(hosted by)/i);
         titleStr = splitName[0].trim();
-        hostStr = `${splitName[1]} ${splitName[2]}`;
+        hostStr = splitName[2].trim(); // Just take the host name, remove "hosted by"
         showInfo.innerHTML = `
             <b>${decodeHtmlEntities(titleStr)}</b>
             <span class="hosted-by">${decodeHtmlEntities(hostStr)}</span>
@@ -201,8 +201,7 @@ function createShowElement(show, earliestHour) {
 
     const hoverBox = document.createElement('div');
     hoverBox.className = 'hover-box';
-    
-    // Include full show info in hover box
+
     const fullShowInfo = document.createElement('div');
     fullShowInfo.className = 'full-show-info';
     fullShowInfo.innerHTML = `
@@ -214,44 +213,53 @@ function createShowElement(show, earliestHour) {
     hoverBox.appendChild(fullShowInfo);
 
     // Add hover box to the main container
-    const mainContainer = document.querySelector('.main-container');
-    mainContainer.appendChild(hoverBox);
+    document.querySelector('.main-container').appendChild(hoverBox);
+
+    showElement.appendChild(timeInfo);
+    showElement.appendChild(showInfo);
 
     // Show hover box on mouse enter
     showElement.addEventListener('mouseenter', () => {
         const showRect = showElement.getBoundingClientRect();
         const isMobile = window.innerWidth <= 768;
 
-        // Position relative to the viewport
+        // Position directly using viewport coordinates
         hoverBox.style.position = 'fixed';
-        hoverBox.style.top = `${showRect.bottom + 5}px`; // Small gap below show
-        hoverBox.style.left = isMobile ? `${showRect.left}px` : `${showRect.left + 10}px`;
+        hoverBox.style.display = 'block';
         hoverBox.style.width = isMobile ? `${showRect.width}px` : '250px';
+
+        // Position relative to viewport
+        let top = showRect.top;
+        let left = showRect.left;
 
         // Show immediately without waiting for transitions
         hoverBox.style.transition = 'none';
-        hoverBox.style.display = 'block';
 
-        // If it would go off bottom of viewport, show above the show
+        // Set initial position to check dimensions
+        hoverBox.style.top = `${top}px`;
+        hoverBox.style.left = `${left}px`;
+
+        // Get hover box dimensions after positioning
         const hoverRect = hoverBox.getBoundingClientRect();
-        if (hoverRect.bottom > window.innerHeight) {
-            hoverBox.style.top = `${showRect.top - hoverRect.height - 5}px`;
+
+        // Adjust if would go off bottom of viewport
+        if (top + hoverRect.height > window.innerHeight) {
+            top = window.innerHeight - hoverRect.height - 10;
         }
 
-        // If it would go off right edge, adjust position
-        if (!isMobile && hoverRect.right > window.innerWidth) {
-            hoverBox.style.left = `${window.innerWidth - hoverRect.width - 10}px`;
+        // Adjust if would go off right edge of viewport
+        if (left + hoverRect.width > window.innerWidth) {
+            left = window.innerWidth - hoverRect.width - 10;
         }
+
+        // Apply final position
+        hoverBox.style.top = `${top}px`;
+        hoverBox.style.left = `${left}px`;
     });
 
-    // Reset transition on mouseleave
     showElement.addEventListener('mouseleave', () => {
         hoverBox.style.display = 'none';
-        hoverBox.style.transition = '';
     });
-
-    showElement.appendChild(timeInfo);
-    showElement.appendChild(showInfo);
 
     return showElement;
 } 
